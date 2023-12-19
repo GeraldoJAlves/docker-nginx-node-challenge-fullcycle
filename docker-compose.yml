@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: geraldojalves/docker-node-simpleapp
+    environment:
+      - PORT=3000
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=root
+      - MYSQL_DATABASE=simpleapp
+      - MYSQL_PASSWORD=123456
+    tty: true
+    restart: always
+    command: npm start
+    networks:
+      - simpleapp
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 30s
+      retries: 6
+    depends_on:
+      mysql:
+        condition: service_healthy
+        restart: true
+  web:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile.prod
+    image: geraldojalves/docker-nginx-simpleapp
+    tty: true
+    ports:
+      - 8080:80
+    networks:
+      - simpleapp
+    depends_on:
+      node:
+        condition: service_healthy
+  mysql:
+    image: mysql:8
+    tty: true
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./docker/volumes/mysql/:/var/lib/mysql/
+      - ./docker/mysql/start.sql:/docker-entrypoint-initdb.d/1.sql
+    environment:
+      - MYSQL_DATABASE=simpleapp
+      - MYSQL_ROOT_PASSWORD=123456
+    healthcheck:
+      test: mysql -uroot -p$$MYSQL_ROOT_PASSWORD simpleapp -e "show tables" | grep people
+      timeout: 30s
+      interval: 5s
+      retries: 6
+    networks:
+      - simpleapp
+networks:
+  simpleapp:
+    driver: bridge
