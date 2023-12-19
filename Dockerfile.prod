@@ -4,10 +4,8 @@ WORKDIR /app
 
 RUN apk update && apk add curl
 
-COPY ./package.json .
-COPY ./package-lock.json .
-COPY ./index.js .
-
+COPY ./src/package.json .
+COPY ./src/package-lock.json .
 
 RUN npm i --omit=dev
 

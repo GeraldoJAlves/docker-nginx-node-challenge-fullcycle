@@ -16,6 +16,9 @@ services:
     tty: true
     restart: always
     command: npm start
+    volumes:
+      - ./src/:/app/
+      - /app/node_modules
     networks:
       - simpleapp
     healthcheck:
