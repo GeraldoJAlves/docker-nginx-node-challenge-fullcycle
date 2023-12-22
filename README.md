@@ -2,6 +2,7 @@
 
 Learning about docker-compose
 
+
 # Requeriments
 
  - Reverse proxy between node and nginx
